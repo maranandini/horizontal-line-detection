@@ -1,0 +1,50 @@
+import os
+import cv2
+import matplotlib.pyplot as plt
+from tkinter import Tk, filedialog
+from utils import detect_horizon_line
+
+def select_image_file():
+    """Open a file dialog to select an image file."""
+    with Tk() as root:
+        root.withdraw()
+        file_path = filedialog.askopenfilename(
+            title="Select an image file",
+            filetypes=[("Image files", "*.jpg *.jpeg *.png")]
+        )
+    return file_path
+
+def process_and_visualize_image(image_path):
+    """Process the image to detect the horizon line and visualize the result."""
+    image = cv2.imread(image_path)
+    grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Detect horizon line
+    horizon_x1, horizon_x2, horizon_y1, horizon_y2 = detect_horizon_line(grayscale_image)
+    
+    # Visualization
+    fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+    
+    axes[0].imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    axes[0].axis('off')
+    axes[0].set_title('Original Image')
+    
+    axes[1].imshow(grayscale_image, cmap='gray')
+    axes[1].axis('off')
+    axes[1].plot([horizon_x1, horizon_x2], [horizon_y1, horizon_y2], color='red', linewidth=2)
+    axes[1].set_title('Grayscale Image\nwith Horizon Line')
+    
+    # Save the resulting figure
+    output_dir = os.path.dirname(image_path)
+    output_filename = os.path.splitext(os.path.basename(image_path))[0] + "_horizon.png"
+    save_path = os.path.join(output_dir, output_filename)
+    fig.savefig(save_path, bbox_inches='tight')
+    plt.show()
+
+def main():
+    image_path = select_image_file()
+    if image_path:
+        process_and_visualize_image(image_path)
+
+if __name__ == '__main__':
+    main()
